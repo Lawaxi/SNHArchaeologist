@@ -1,6 +1,8 @@
 package net.lawaxi.bot;
 
 import cn.hutool.core.date.DateTime;
+import cn.hutool.core.io.FileUtil;
+import cn.hutool.http.HttpRequest;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import net.lawaxi.bot.models.Subscribe;
@@ -9,10 +11,15 @@ import net.mamoe.mirai.console.command.CommandSender;
 import net.mamoe.mirai.console.command.java.JCompositeCommand;
 import net.mamoe.mirai.contact.Contact;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static net.lawaxi.bot.Archaeologist.*;
-import static net.lawaxi.bot.listener.download;
 
 public class debug_command extends JCompositeCommand {
 
@@ -24,7 +31,7 @@ public class debug_command extends JCompositeCommand {
     public void sub(CommandSender sender, String name, int year) {
         Subscribe sub = new Subscribe(name, DateTime.now().year() - year);
         executeDebugLog(sub.name + "-" + sub.year);
-        if (download(sub)) {
+        if (net.lawaxi.bot.listener.download(sub)) {
             sender.sendMessage("关注成功");
             config.addSubscribe(sub);
         } else {
@@ -59,7 +66,7 @@ public class debug_command extends JCompositeCommand {
             Time time = Time.current(start);
             String source = config.loadSource(name, "" + time);
             if (source.equals("")) {
-                snhey.download(name, "" + time);
+                snhey.download(name, "" + time, false);
                 source = config.loadSource(name, "" + time);
             }
 
@@ -76,6 +83,72 @@ public class debug_command extends JCompositeCommand {
             } else {
                 sender.sendMessage("超过上限");
             }
+        }
+    }
+
+
+    @SubCommand({"download"})
+    public void download(CommandSender sender, String name, int from, int to, boolean original, boolean save_img) {
+        File source = new File(new File(config.sourceFolder, name), "img");
+
+        Time t = new Time(from, 1, 1);
+        while (t.year <= to) {
+            //文字
+            JSONObject s = snhey.download(name, "" + t, original);
+
+            if(save_img) {
+                //图片
+                for (String d : s.keySet()) {
+                    JSONObject w = s.getJSONObject(d);
+                    Matcher b = Pattern.compile("(?<=%img=|%link=).*?(?=%)").matcher(w.getStr("content"));
+
+                    int count = 1;
+                    while (b.find()) {
+                        String pic = b.group();
+                        if (pic.startsWith("http://t.cn/")) {
+                            String p = HttpRequest.get(pic).execute().body();
+                            if (p.indexOf("<A HREF=\"") == -1 || p.indexOf("\">here") == -1)
+                                continue;
+
+                            String loc = p.substring(p.indexOf("<A HREF=\"") + "<A HREF=\"".length(), p.indexOf("\">here"));
+
+                            if (loc.substring(6).indexOf(":") != -1) {
+                            /*
+                            String p1 = weibo.setCookie(HttpRequest.get(p.substring(p.indexOf("<A HREF=\"") + "<A HREF=\"".length(), p.indexOf("\">here")))
+                                    .header("Host","photo.weibo.com")).execute().body();
+                            executeDebugLog(p1);
+                            p1 = p1.substring(p1.indexOf("src=\"")+"src=\"".length());
+                            pic = p1.substring(0,p1.indexOf("\">"));*/
+
+                                FileUtil.writeString(loc, new File(new File(source, "" + t), d + "-" + count + ".txt"), StandardCharsets.UTF_8);
+                                count++;
+                                continue;
+
+                            } else {
+                                continue;
+                            }
+                        }
+
+                        executeDebugLog(pic);
+                        String suffix = pic.substring(pic.lastIndexOf("."));
+                        File dest = new File(new File(source, "" + t), d + "-" + count + suffix);
+
+                        try {
+                            InputStream stream = HttpRequest.get(pic).setReadTimeout(20000).header("Referer", "https://weibo.com/").execute().bodyStream();
+                            BufferedInputStream bufferedInput = new BufferedInputStream(stream);
+                            byte[] result = new byte[bufferedInput.available()];
+                            bufferedInput.read(result, 0, result.length);
+                            FileUtil.writeBytes(result, dest); //有自动判断存在的功能
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
+                        count++;
+                    }
+                }
+            }
+            t = t.next();
         }
     }
 

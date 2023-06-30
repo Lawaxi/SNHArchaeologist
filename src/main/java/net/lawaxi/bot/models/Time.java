@@ -18,6 +18,20 @@ public class Time {
         return year + "-" + (month > 9 ? "" : "0") + month + "-" + (date > 9 ? "" : "0") + date;
     }
 
+    public Time next() {
+        switch (date) {
+            case 1:
+            case 11:
+                return new Time(year, month, date + 10);
+            default: {
+                if (month == 12) {
+                    return new Time(year + 1, 1, 1);
+                }
+                return new Time(year, month + 1, 1);
+            }
+        }
+    }
+
     public static Time fromStart() {
         return new Time(2014, 7, 11);
     }

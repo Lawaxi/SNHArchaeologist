@@ -26,21 +26,21 @@ import static net.lawaxi.bot.Archaeologist.executeDebugLog;
 public class SNHeyHelper {
     public static final String API = "http://13.94.46.135/Home/Profiles/%s?weiboPage=%d&timeRange=%s";
 
-    public void download(String name, String time) {
+    public JSONObject download(String name, String time, boolean original) {
         String s = get(String.format(API, name, 1, time));
         s = s.substring(s.indexOf("<b><span>1</span></b>") + "<b><span>1</span></b>".length());
 
 
         List<WeiboContent> contents = new ArrayList<>();
         //第一页
-        read(name, contents, s.substring(s.indexOf("<fieldset>"), s.indexOf("</fieldset>")));
+        read(name, contents, s.substring(s.indexOf("<fieldset>"), s.indexOf("</fieldset>")), original);
 
         //第n页
         s = s.substring(0, s.indexOf("</div>"));
         int count = 2;
         while (s.indexOf("[") != -1) {
             String s1 = get(String.format(API, name, count, time));
-            read(name, contents, s1.substring(s1.indexOf("<fieldset>"), s1.indexOf("</fieldset>")));
+            read(name, contents, s1.substring(s1.indexOf("<fieldset>"), s1.indexOf("</fieldset>")), original);
             s = s.substring(s.indexOf("</a>") + "</a>".length());
             count++;
         }
@@ -51,9 +51,10 @@ public class SNHeyHelper {
         }
 
         config.storeSource(name, time, o.toStringPretty());
+        return o;
     }
 
-    private void read(String name, List<WeiboContent> contents, String p) {
+    private void read(String name, List<WeiboContent> contents, String p, boolean original) {
         String[] ps = p.split("<div class=\"status\">");
         for (String p0 : ps) {
             if (p0.indexOf("</div>") == -1) {
@@ -64,6 +65,9 @@ public class SNHeyHelper {
             p0 = p0.substring(p0.indexOf("<span class=\"name\">") + "<span class=\"name\">".length());
             String n = p0.substring(0, p0.indexOf("</span>"));
             object.set("name", n);
+            if (original && !n.equals(name))
+                continue;
+
             object.set("original", n.equals(name));
             p0 = p0.substring(p0.indexOf("</wb:follow-button>") + "</wb:follow-button>".length());
 
@@ -197,26 +201,35 @@ public class SNHeyHelper {
     }
 
     public Message parseContent(String content, Contact contact) throws IOException {
-        String[] a = content.split("%img=*?%", -1);
+        String[] a = content.split("(?<=%img=|%link=).*?(?=%)", -1);
         if (a.length < 2)
             return new PlainText(content);
 
         Message out = new PlainText(a[0]);
         int count = 1;
-        Matcher b = Pattern.compile("(?<=%img=|%link=)*?(?=%)").matcher(content);
+        Matcher b = Pattern.compile("(?<=%img=|%link=).*?(?=%)").matcher(content);
         while (b.find()) {
             String pic = b.group();
             if (pic.startsWith("http://t.cn/")) {
                 String p = get(pic);
-                if (p.indexOf("<A HREF=\"") != -1 && p.indexOf("\">here") != -1) {
+                if (p.indexOf("<A HREF=\"") == -1 || p.indexOf("\">here") == -1)
+                    continue;
+
+                String loc = p.substring(p.indexOf("<A HREF=\"") + "<A HREF=\"".length(), p.indexOf("\">here"));
+                //暂时对处理短链感到无能为力
+                /*
+                if (loc.substring(6).indexOf(":") != -1) {
                     //图片短链
-                    pic = p.substring(p.indexOf("<A HREF=\"") + "<A HREF=\"".length(), p.indexOf("\">here"));
+                    String p1 = weibo.setCookie(HttpRequest.get(p.substring(p.indexOf("<A HREF=\"") + "<A HREF=\"".length(), p.indexOf("\">here")))
+                            .header("Host","photo.weibo.com")).execute().body();
+                    p1 = p1.substring(p1.indexOf("src=\"")+"src=\"".length());
+                    pic = p1.substring(0,p1.indexOf("\">"));
 
                 } else {
-                    //其他短链
-                    out = out.plus(pic + a[count]);
-                    continue;
-                }
+                    //其他短链*/
+                out = out.plus(loc + a[count]);
+                continue;
+                //}
             }
 
             out = out.plus(contact.uploadImage(ExternalResource.create(getRes(pic))));
@@ -232,7 +245,7 @@ public class SNHeyHelper {
 
         String source = config.loadSource(name, "" + time);
         if (source.equals("")) {
-            download(name, "" + time);
+            download(name, "" + time, false);
             source = config.loadSource(name, "" + time);
         }
 

@@ -5,6 +5,7 @@ import cn.hutool.cron.CronUtil;
 import cn.hutool.json.JSONObject;
 import net.lawaxi.bot.helper.ConfigHelper;
 import net.lawaxi.bot.helper.SNHeyHelper;
+import net.lawaxi.bot.helper.WeiboLoginHelper;
 import net.lawaxi.bot.models.Subscribe;
 import net.mamoe.mirai.Bot;
 import net.mamoe.mirai.console.command.CommandManager;
@@ -21,6 +22,7 @@ public final class Archaeologist extends JavaPlugin {
     public static final Archaeologist INSTANCE = new Archaeologist();
     public static ConfigHelper config;
     public static SNHeyHelper snhey;
+    public static WeiboLoginHelper weibo;
 
     public static void executeDebugLog(String s) {
         if (config.debug()) {
@@ -39,6 +41,7 @@ public final class Archaeologist extends JavaPlugin {
     public void onEnable() {
         config = new ConfigHelper(getConfigFolder(), resolveConfigFile("config.setting"));
         snhey = new SNHeyHelper();
+        weibo = new WeiboLoginHelper();
 
         GlobalEventChannel.INSTANCE.parentScope(INSTANCE).subscribeOnce(BotOnlineEvent.class, event -> {
             listenBroadcast(event.getBot());

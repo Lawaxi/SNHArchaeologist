@@ -58,7 +58,7 @@ public class listener extends SimpleListenerHost {
             start.setYear(start.getYear() - sub.year);
 
             Time time = Time.current(start);
-            snhey.download(sub.name, "" + time);
+            snhey.download(sub.name, "" + time, false);
             return true;
         } catch (Exception e) {
             e.printStackTrace();
