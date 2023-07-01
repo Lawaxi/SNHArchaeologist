@@ -96,7 +96,7 @@ public class debug_command extends JCompositeCommand {
             //文字
             JSONObject s = snhey.download(name, "" + t, original);
 
-            if(save_img) {
+            if (save_img) {
                 //图片
                 for (String d : s.keySet()) {
                     JSONObject w = s.getJSONObject(d);
@@ -120,7 +120,7 @@ public class debug_command extends JCompositeCommand {
                             p1 = p1.substring(p1.indexOf("src=\"")+"src=\"".length());
                             pic = p1.substring(0,p1.indexOf("\">"));*/
 
-                                FileUtil.writeString(loc, new File(new File(source, "" + t), d + "-" + count + ".txt"), StandardCharsets.UTF_8);
+                                FileUtil.writeString(loc, new File(new File(source, t.getYearAndMonth()), d + "-" + count + ".txt"), StandardCharsets.UTF_8);
                                 count++;
                                 continue;
 
@@ -131,7 +131,7 @@ public class debug_command extends JCompositeCommand {
 
                         executeDebugLog(pic);
                         String suffix = pic.substring(pic.lastIndexOf("."));
-                        File dest = new File(new File(source, "" + t), d + "-" + count + suffix);
+                        File dest = new File(new File(source, t.getYearAndMonth()), d + "-" + count + suffix);
 
                         try {
                             InputStream stream = HttpRequest.get(pic).setReadTimeout(20000).header("Referer", "https://weibo.com/").execute().bodyStream();

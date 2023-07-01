@@ -18,6 +18,10 @@ public class Time {
         return year + "-" + (month > 9 ? "" : "0") + month + "-" + (date > 9 ? "" : "0") + date;
     }
 
+    public String getYearAndMonth() {
+        return year + "-" + (month > 9 ? "" : "0") + month;
+    }
+
     public Time next() {
         switch (date) {
             case 1:
