@@ -180,8 +180,7 @@ public class SNHeyHelper {
     }
 
     public Message getMessage(JSONObject w, Contact contact) throws IOException {
-        Message m = new PlainText("【" + w.getStr("name") + "微博更新：" + DateTime.of(w.getLong("time")).toStringDefaultTimeZone() + "】\n");
-        m = m.plus(parseContent(w.getStr("content"), contact));
+        Message m = parseContent(w.getStr("content"), contact);
         if (w.containsKey("repost")) {
             JSONObject repost = w.getJSONObject("repost");
             m = m.plus("\n---------\n转发：\n" + repost.getStr("name") + "：")
@@ -201,7 +200,7 @@ public class SNHeyHelper {
     }
 
     public Message parseContent(String content, Contact contact) throws IOException {
-        String[] a = content.split("(?<=%img=|%link=).*?(?=%)", -1);
+        String[] a = content.split("(%img=|%link=).*?(%)", -1);
         if (a.length < 2)
             return new PlainText(content);
 

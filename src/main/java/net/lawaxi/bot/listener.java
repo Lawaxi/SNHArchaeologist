@@ -3,6 +3,7 @@ package net.lawaxi.bot;
 import cn.hutool.core.date.DateTime;
 import net.lawaxi.bot.models.Subscribe;
 import net.lawaxi.bot.models.Time;
+import net.lawaxi.util.CommandOperator;
 import net.mamoe.mirai.contact.Group;
 import net.mamoe.mirai.event.EventHandler;
 import net.mamoe.mirai.event.ListeningStatus;
@@ -15,7 +16,10 @@ import static net.lawaxi.bot.Archaeologist.snhey;
 
 public class listener extends SimpleListenerHost {
 
-    public listener() {
+    public listener(boolean hasShitboy) {
+        if (hasShitboy) {
+            CommandOperator.INSTANCE.addHelp(getHelp());
+        }
     }
 
     @EventHandler()

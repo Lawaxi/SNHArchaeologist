@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "net.lawaxi.bot"
-version = "0.1.0-beta1"
+version = "0.1.0"
 
 repositories {
     maven("https://maven.aliyun.com/repository/public")
@@ -16,6 +16,6 @@ repositories {
 }
 
 dependencies {
-    implementation("cn.hutool:hutool-all:5.8.18")
-    //implementation(files("libs/shitboy-0.1.9-test4.mirai2.jar"))
+    api ("cn.hutool:hutool-all:5.8.18")
+    api (files("libs/shitboy-0.1.9-test4.mirai2.jar"))
 }

@@ -9,11 +9,14 @@ import net.lawaxi.bot.helper.WeiboLoginHelper;
 import net.lawaxi.bot.models.Subscribe;
 import net.mamoe.mirai.Bot;
 import net.mamoe.mirai.console.command.CommandManager;
+import net.mamoe.mirai.console.plugin.Plugin;
+import net.mamoe.mirai.console.plugin.PluginManager;
 import net.mamoe.mirai.console.plugin.jvm.JavaPlugin;
 import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescriptionBuilder;
 import net.mamoe.mirai.contact.Group;
 import net.mamoe.mirai.event.GlobalEventChannel;
 import net.mamoe.mirai.event.events.BotOnlineEvent;
+import net.mamoe.mirai.message.data.PlainText;
 
 import java.util.List;
 
@@ -31,9 +34,10 @@ public final class Archaeologist extends JavaPlugin {
     }
 
     private Archaeologist() {
-        super(new JvmPluginDescriptionBuilder("net.lawaxi.snharch", "0.1.0-beta1")
+        super(new JvmPluginDescriptionBuilder("net.lawaxi.snharch", "0.1.0")
                 .name("Archaeologist")
                 .author("delay0delay")
+                .dependsOn("net.lawaxi.shitboy", true)
                 .build());
     }
 
@@ -47,7 +51,7 @@ public final class Archaeologist extends JavaPlugin {
             listenBroadcast(event.getBot());
         });
 
-        GlobalEventChannel.INSTANCE.registerListenerHost(new listener());
+        GlobalEventChannel.INSTANCE.registerListenerHost(new listener(hasShitboy()));
         if (config.debug()) {
             CommandManager.INSTANCE.registerCommand(new debug_command(), false);
         }
@@ -70,7 +74,8 @@ public final class Archaeologist extends JavaPlugin {
                             List<JSONObject> l = snhey.getCurrent(sub.name, start);
                             for (int i = l.size() - 1; i >= 0; i--) {
                                 try {
-                                    group.sendMessage(snhey.getMessage(l.get(i), group));
+                                    group.sendMessage(new PlainText("【" + sub.year + "年前：" + l.get(i).getStr("name") + "微博更新：" + DateTime.of(l.get(i).getLong("time")).toStringDefaultTimeZone() + "】\n")
+                                            .plus(snhey.getMessage(l.get(i), group)));
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                 }
@@ -82,6 +87,15 @@ public final class Archaeologist extends JavaPlugin {
             }
         });
         CronUtil.start();
+    }
+
+    private boolean hasShitboy() {
+        for (Plugin plugin : PluginManager.INSTANCE.getPlugins()) {
+            if (PluginManager.INSTANCE.getPluginDescription(plugin).getId().equals("net.lawaxi.shitboy")) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }
