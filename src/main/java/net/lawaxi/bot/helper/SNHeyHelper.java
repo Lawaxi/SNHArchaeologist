@@ -7,6 +7,7 @@ import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
 import net.lawaxi.bot.models.Time;
+import net.lawaxi.bot.util.TimeUtil;
 import net.mamoe.mirai.contact.Contact;
 import net.mamoe.mirai.message.data.Message;
 import net.mamoe.mirai.message.data.PlainText;
@@ -187,12 +188,13 @@ public class SNHeyHelper {
                     .plus(parseContent(repost.getStr("content"), contact));
 
         }
-        if (w.containsKey("replies")) {
-            for (Object object : w.getJSONArray("replies").toArray()) {
-                JSONObject reply = JSONUtil.parseObj(object);
+        if (w.containsKey("reply")) {
+            Object[] replies = w.getJSONArray("reply").toArray();
+            for (int i = replies.length - 1; i >= 0; i--) {
+                JSONObject reply = JSONUtil.parseObj(replies[i]);
                 m = m.plus("\n+++++++++\n" + reply.getStr("name") + "：")
                         .plus(parseContent(reply.getStr("content"), contact))
-                        .plus("\n(" + DateTime.of(reply.getLong("time")).toStringDefaultTimeZone() + ")");
+                        .plus("\n(" + TimeUtil.time2String(reply.getLong("time")) + ")");
             }
         }
 

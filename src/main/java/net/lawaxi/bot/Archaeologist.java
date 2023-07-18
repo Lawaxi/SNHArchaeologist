@@ -7,6 +7,7 @@ import net.lawaxi.bot.helper.ConfigHelper;
 import net.lawaxi.bot.helper.SNHeyHelper;
 import net.lawaxi.bot.helper.WeiboLoginHelper;
 import net.lawaxi.bot.models.Subscribe;
+import net.lawaxi.bot.util.TimeUtil;
 import net.mamoe.mirai.Bot;
 import net.mamoe.mirai.console.command.CommandManager;
 import net.mamoe.mirai.console.plugin.Plugin;
@@ -34,7 +35,7 @@ public final class Archaeologist extends JavaPlugin {
     }
 
     private Archaeologist() {
-        super(new JvmPluginDescriptionBuilder("net.lawaxi.snharch", "0.1.0")
+        super(new JvmPluginDescriptionBuilder("net.lawaxi.snharch", "0.1.0-test2")
                 .name("Archaeologist")
                 .author("delay0delay")
                 .dependsOn("net.lawaxi.shitboy", true)
@@ -70,11 +71,13 @@ public final class Archaeologist extends JavaPlugin {
                         for (Subscribe sub : config.getSubscribes()) {
                             DateTime start = DateTime.now();
                             start.setYear(start.getYear() - sub.year);
+                            start.setMinutes(0);
+                            start.setSeconds(0);
 
                             List<JSONObject> l = snhey.getCurrent(sub.name, start);
                             for (int i = l.size() - 1; i >= 0; i--) {
                                 try {
-                                    group.sendMessage(new PlainText("【" + sub.year + "年前：" + l.get(i).getStr("name") + "微博更新：" + DateTime.of(l.get(i).getLong("time")).toStringDefaultTimeZone() + "】\n")
+                                    group.sendMessage(new PlainText("【" + sub.year + "年前：" + l.get(i).getStr("name") + "微博更新：" + TimeUtil.time2String(l.get(i).getLong("time")) + "】\n")
                                             .plus(snhey.getMessage(l.get(i), group)));
                                 } catch (Exception e) {
                                     e.printStackTrace();
