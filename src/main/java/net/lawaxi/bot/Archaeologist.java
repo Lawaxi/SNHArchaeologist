@@ -16,7 +16,6 @@ import net.mamoe.mirai.console.plugin.jvm.JavaPlugin;
 import net.mamoe.mirai.console.plugin.jvm.JvmPluginDescriptionBuilder;
 import net.mamoe.mirai.contact.Group;
 import net.mamoe.mirai.event.GlobalEventChannel;
-import net.mamoe.mirai.event.events.BotOnlineEvent;
 import net.mamoe.mirai.message.data.PlainText;
 
 import java.util.List;
@@ -35,7 +34,7 @@ public final class Archaeologist extends JavaPlugin {
     }
 
     private Archaeologist() {
-        super(new JvmPluginDescriptionBuilder("net.lawaxi.snharch", "0.1.0-test2")
+        super(new JvmPluginDescriptionBuilder("net.lawaxi.snharch", "0.1.0-test3")
                 .name("Archaeologist")
                 .author("delay0delay")
                 .dependsOn("net.lawaxi.shitboy", true)
@@ -47,10 +46,7 @@ public final class Archaeologist extends JavaPlugin {
         config = new ConfigHelper(getConfigFolder(), resolveConfigFile("config.setting"));
         snhey = new SNHeyHelper();
         weibo = new WeiboLoginHelper();
-
-        GlobalEventChannel.INSTANCE.parentScope(INSTANCE).subscribeOnce(BotOnlineEvent.class, event -> {
-            listenBroadcast(event.getBot());
-        });
+        listenBroadcast();
 
         GlobalEventChannel.INSTANCE.registerListenerHost(new listener(hasShitboy()));
         if (config.debug()) {
@@ -58,34 +54,36 @@ public final class Archaeologist extends JavaPlugin {
         }
     }
 
-    private void listenBroadcast(Bot b) {
+    private void listenBroadcast() {
         CronUtil.schedule("0 0 * * * ?", new Runnable() {
             @Override
             public void run() {
-                Group group = b.getGroup(config.group());
-                if (group == null)
-                    return;
-                new Thread() {
-                    @Override
-                    public void run() {
-                        for (Subscribe sub : config.getSubscribes()) {
-                            DateTime start = DateTime.now();
-                            start.setYear(start.getYear() - sub.year);
-                            start.setMinutes(0);
-                            start.setSeconds(0);
+                for (Bot b : Bot.getInstances()) {
+                    Group group = b.getGroup(config.group());
+                    if (group == null)
+                        return;
+                    new Thread() {
+                        @Override
+                        public void run() {
+                            for (Subscribe sub : config.getSubscribes()) {
+                                DateTime start = DateTime.now();
+                                start.setYear(start.getYear() - sub.year);
+                                start.setMinutes(0);
+                                start.setSeconds(0);
 
-                            List<JSONObject> l = snhey.getCurrent(sub.name, start);
-                            for (int i = l.size() - 1; i >= 0; i--) {
-                                try {
-                                    group.sendMessage(new PlainText("【" + sub.year + "年前：" + l.get(i).getStr("name") + "微博更新：" + TimeUtil.time2String(l.get(i).getLong("time")) + "】\n")
-                                            .plus(snhey.getMessage(l.get(i), group)));
-                                } catch (Exception e) {
-                                    e.printStackTrace();
+                                List<JSONObject> l = snhey.getCurrent(sub.name, start);
+                                for (int i = l.size() - 1; i >= 0; i--) {
+                                    try {
+                                        group.sendMessage(new PlainText("【" + sub.year + "年前：" + l.get(i).getStr("name") + "微博更新：" + TimeUtil.time2String(l.get(i).getLong("time")) + "】\n")
+                                                .plus(snhey.getMessage(l.get(i), group)));
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
                                 }
                             }
                         }
-                    }
-                }.start();
+                    }.start();
+                }
 
             }
         });
