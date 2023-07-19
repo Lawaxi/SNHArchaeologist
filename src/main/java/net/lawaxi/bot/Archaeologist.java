@@ -1,7 +1,7 @@
 package net.lawaxi.bot;
 
 import cn.hutool.core.date.DateTime;
-import cn.hutool.cron.CronUtil;
+import cn.hutool.cron.Scheduler;
 import cn.hutool.json.JSONObject;
 import net.lawaxi.bot.helper.ConfigHelper;
 import net.lawaxi.bot.helper.SNHeyHelper;
@@ -34,7 +34,7 @@ public final class Archaeologist extends JavaPlugin {
     }
 
     private Archaeologist() {
-        super(new JvmPluginDescriptionBuilder("net.lawaxi.snharch", "0.1.0-test3")
+        super(new JvmPluginDescriptionBuilder("net.lawaxi.snharch", "0.1.0-test4")
                 .name("Archaeologist")
                 .author("delay0delay")
                 .dependsOn("net.lawaxi.shitboy", true)
@@ -55,7 +55,8 @@ public final class Archaeologist extends JavaPlugin {
     }
 
     private void listenBroadcast() {
-        CronUtil.schedule("0 0 * * * ?", new Runnable() {
+        Scheduler archaeologist = new Scheduler();
+        archaeologist.schedule("0 0 * * * ?", new Runnable() {
             @Override
             public void run() {
                 for (Bot b : Bot.getInstances()) {
@@ -87,7 +88,7 @@ public final class Archaeologist extends JavaPlugin {
 
             }
         });
-        CronUtil.start();
+        archaeologist.start();
     }
 
     private boolean hasShitboy() {

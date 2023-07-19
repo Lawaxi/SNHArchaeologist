@@ -72,7 +72,7 @@ public class listener extends SimpleListenerHost {
 
     public String getHelp() {
         return "【成员历史微博考古相关】\n"
-                + "/历史 关注 <成员名> <初始年份>"
-                + "/历史 取消关注 <成员名>";
+                + "/历史 关注 <成员名> <初始年份>\n"
+                + "/历史 取消关注 <成员名>\n";
     }
 }
