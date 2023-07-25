@@ -95,7 +95,8 @@ public class SNHeyHelper {
 
             //回复
             p0 = p0.substring(p0.indexOf("<div>") + "<div>".length());
-            p0 = p0.substring(0, p0.indexOf("</div>"));
+            p0 = p0.substring(0, p0.indexOf("</div>"))
+                    .replace("\"highlight\"","\"\"");
             JSONArray replies = new JSONArray();
             while (p0.contains("<span class=\"\">")) {
                 p0 = p0.substring(p0.indexOf("<span class=\"\">") + "<span class=\"\">".length());

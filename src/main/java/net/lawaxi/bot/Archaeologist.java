@@ -34,7 +34,7 @@ public final class Archaeologist extends JavaPlugin {
     }
 
     private Archaeologist() {
-        super(new JvmPluginDescriptionBuilder("net.lawaxi.snharch", "0.1.0-test4")
+        super(new JvmPluginDescriptionBuilder("net.lawaxi.snharch", "0.1.0-test5")
                 .name("Archaeologist")
                 .author("delay0delay")
                 .dependsOn("net.lawaxi.shitboy", true)
