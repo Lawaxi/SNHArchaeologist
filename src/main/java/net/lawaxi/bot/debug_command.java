@@ -30,9 +30,9 @@ public class debug_command extends JCompositeCommand {
 
     @SubCommand({"sub"})
     public void sub(CommandSender sender, long group, String name, int year) {
-        Subscribe sub = new Subscribe(name, DateTime.now().year() - year);
+        Subscribe sub = new Subscribe(name, DateTime.now().year() - year, true);
         executeDebugLog(sub.name + "-" + sub.year);
-        if (net.lawaxi.bot.listener.download(sub)) {
+        if (net.lawaxi.bot.listener.download(sub, true)) {
             sender.sendMessage("关注成功");
             config.addSubscribe(group, sub);
         } else {
@@ -55,7 +55,7 @@ public class debug_command extends JCompositeCommand {
             start.setMinutes(0);
             start.setSeconds(0);
 
-            List<JSONObject> l = snhey.getCurrent(sub.name, start);
+            List<JSONObject> l = snhey.getCurrent(sub.name, sub.original, start);
             for (int i = l.size() - 1; i >= 0; i--) {
                 try {
                     sender.sendMessage(snhey.getMessage(l.get(i), (Contact) sender));
@@ -65,10 +65,10 @@ public class debug_command extends JCompositeCommand {
             }
         } else {
             Time time = Time.current(start);
-            String source = config.loadSource(name, "" + time);
+            String source = config.loadSource(name, "" + time, sub.original);
             if (source.equals("")) {
-                snhey.download(name, "" + time, false);
-                source = config.loadSource(name, "" + time);
+                snhey.download(name, "" + time, sub.original);
+                source = config.loadSource(name, "" + time, sub.original);
             }
 
             JSONObject s = JSONUtil.parseObj(source);

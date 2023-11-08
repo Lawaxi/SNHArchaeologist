@@ -28,7 +28,7 @@ public final class Archaeologist extends JavaPlugin {
     public static WeiboLoginHelper2 weibo;
 
     private Archaeologist() {
-        super(new JvmPluginDescriptionBuilder("net.lawaxi.snharch", "0.1.2")
+        super(new JvmPluginDescriptionBuilder("net.lawaxi.snharch", "0.1.3-test2")
                 .name("Archaeologist")
                 .author("delay0delay")
                 .dependsOn("net.lawaxi.shitboy", true)
@@ -74,7 +74,7 @@ public final class Archaeologist extends JavaPlugin {
                                     start.setMinutes(0);
                                     start.setSeconds(0);
 
-                                    List<JSONObject> l = snhey.getCurrent(sub.name, start);
+                                    List<JSONObject> l = snhey.getCurrent(sub.name, sub.original, start);
                                     for (int i = l.size() - 1; i >= 0; i--) {
                                         try {
                                             group.sendMessage(new PlainText("【" + sub.year + "年前：" + l.get(i).getStr("name") + "微博更新：" + TimeUtil.time2String(l.get(i).getLong("time")) + "】\n")

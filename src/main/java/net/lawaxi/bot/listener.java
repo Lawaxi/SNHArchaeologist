@@ -21,13 +21,13 @@ public class listener extends SimpleListenerHost {
         }
     }
 
-    public static boolean download(Subscribe sub) {
+    public static boolean download(Subscribe sub, boolean original) {
         try {
             DateTime start = DateTime.now();
             start.setYear(start.getYear() - sub.year);
 
             Time time = Time.current(start);
-            snhey.download(sub.name, "" + time, false);
+            snhey.download(sub.name, "" + time, original);
             return true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -41,12 +41,18 @@ public class listener extends SimpleListenerHost {
         String message = event.getMessage().contentToString();
         if (message.startsWith("/历史")) {
             String[] args = message.split(" ");
-            if (args[1].equals("关注") && args.length == 4) {
+            if (args[1].equals("关注") && args.length >= 4) {
                 String name = args[2];
                 int year = DateTime.now().year() - Integer.valueOf(args[3]);
+                boolean original = true;
+                try {
+                    original = Boolean.parseBoolean(args[4]);
+                } catch (Exception e) {
+
+                }
                 if (config.getSubscribe(g, name, year) == null) {
-                    Subscribe sub = new Subscribe(name, year);
-                    if (download(sub)) {
+                    Subscribe sub = new Subscribe(name, year, original);
+                    if (download(sub, original)) {
                         config.addSubscribe(g, sub);
                         event.getGroup().sendMessage(new At(event.getSender().getId()).plus("关注成功"));
                     } else {
@@ -80,8 +86,9 @@ public class listener extends SimpleListenerHost {
 
     public String getHelp() {
         return "【成员历史微博考古相关】\n"
-                + "/历史 关注 <成员名> <初始年份>\n"
+                + "/历史 关注 <成员名> <初始年份> (<仅原创>)\n"
                 + "/历史 取消关注 <成员名> (<初始年份>)\n"
+                + "注：仅原创默认True，调为False则可播报被该成员留言过的其他成员历史微博\n"
                 + "注：取关时不填初始年份默认全部取关\n";
     }
 }

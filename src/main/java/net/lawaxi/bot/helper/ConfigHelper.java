@@ -44,7 +44,8 @@ public class ConfigHelper {
             JSONObject jsonObject = (JSONObject) item;
             String name = jsonObject.getStr("name");
             int year = jsonObject.getInt("year");
-            subscribeList.add(new Subscribe(name, year));
+            boolean original = jsonObject.getBool("original", true);
+            subscribeList.add(new Subscribe(name, year, original));
         }
         return subscribeList;
     }
@@ -148,6 +149,7 @@ public class ConfigHelper {
                 JSONObject subscriptionObject = new JSONObject();
                 subscriptionObject.put("name", subscribe.name);
                 subscriptionObject.put("year", subscribe.year);
+                subscriptionObject.put("original", subscribe.original);
                 groupSubscriptions.add(subscriptionObject);
             }
             updatedConfig.put(group.toString(), groupSubscriptions);
@@ -156,8 +158,8 @@ public class ConfigHelper {
         FileUtil.writeString(updatedConfig.toStringPretty(), configFile, StandardCharsets.UTF_8);
     }
 
-    public void storeSource(String name, String time, String content) {
-        File folder = new File(this.sourceFolder, name);
+    public void storeSource(String name, String time, boolean original, String content) {
+        File folder = new File(this.sourceFolder, name + (original ? "-Ori" : ""));
         if (!folder.exists()) {
             folder.mkdir();
         }
@@ -169,8 +171,8 @@ public class ConfigHelper {
         FileUtil.writeString(content, file, StandardCharsets.UTF_8);
     }
 
-    public String loadSource(String name, String time) {
-        File file = new File(new File(this.sourceFolder, name), time + ".json");
+    public String loadSource(String name, String time, boolean original) {
+        File file = new File(new File(this.sourceFolder, name + (original ? "-Ori" : "")), time + ".json");
         if (file.exists()) {
             return FileUtil.readString(file, StandardCharsets.UTF_8);
         } else return "";

@@ -52,7 +52,7 @@ public class SNHeyHelper {
             o.set("" + content.time, content.json);
         }
 
-        config.storeSource(name, time, o.toStringPretty());
+        config.storeSource(name, time, original, o.toStringPretty());
         return o;
     }
 
@@ -243,15 +243,15 @@ public class SNHeyHelper {
         return out;
     }
 
-    public List<JSONObject> getCurrent(String name, DateTime start) {
+    public List<JSONObject> getCurrent(String name, boolean original, DateTime start) {
         Time time = Time.current(start);
         DateTime end = DateTime.of(start.getTime() + 3600 * 1000);
         executeDebugLog("开始时间：" + start.toStringDefaultTimeZone() + "，结束时间" + end.toStringDefaultTimeZone());
 
-        String source = config.loadSource(name, "" + time);
+        String source = config.loadSource(name, "" + time, original);
         if (source.equals("")) {
-            download(name, "" + time, false);
-            source = config.loadSource(name, "" + time);
+            download(name, "" + time, original);
+            source = config.loadSource(name, "" + time, original);
         }
 
         JSONObject s = JSONUtil.parseObj(source);
