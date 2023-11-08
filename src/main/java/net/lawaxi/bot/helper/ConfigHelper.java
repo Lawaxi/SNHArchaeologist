@@ -11,6 +11,7 @@ import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 public class ConfigHelper {
@@ -71,9 +72,11 @@ public class ConfigHelper {
         }
 
         boolean removed = false;
-        for (Subscribe subscribe : groupSubscribes) {
+        Iterator<Subscribe> iterator = groupSubscribes.iterator();
+        while (iterator.hasNext()) {
+            Subscribe subscribe = iterator.next();
             if (subscribe.name.equals(name)) {
-                groupSubscribes.remove(subscribe);
+                iterator.remove(); // Use iterator to remove the element
                 removed = true;
             }
         }
@@ -84,6 +87,7 @@ public class ConfigHelper {
 
         return removed;
     }
+
 
     public boolean rmSubscribe(long group, String name, int year) {
         List<Subscribe> groupSubscribes = subscribes.get(group);

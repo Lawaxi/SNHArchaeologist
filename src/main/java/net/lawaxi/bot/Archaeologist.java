@@ -28,7 +28,7 @@ public final class Archaeologist extends JavaPlugin {
     public static WeiboLoginHelper2 weibo;
 
     private Archaeologist() {
-        super(new JvmPluginDescriptionBuilder("net.lawaxi.snharch", "0.1.3-test2")
+        super(new JvmPluginDescriptionBuilder("net.lawaxi.snharch", "0.1.3-test3")
                 .name("Archaeologist")
                 .author("delay0delay")
                 .dependsOn("net.lawaxi.shitboy", true)
