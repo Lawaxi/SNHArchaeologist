@@ -6,6 +6,7 @@ import cn.hutool.http.HttpRequest;
 import cn.hutool.json.JSONArray;
 import cn.hutool.json.JSONObject;
 import cn.hutool.json.JSONUtil;
+import net.lawaxi.bot.Archaeologist;
 import net.lawaxi.bot.models.Time;
 import net.lawaxi.bot.util.TimeUtil;
 import net.mamoe.mirai.contact.Contact;
@@ -96,7 +97,7 @@ public class SNHeyHelper {
             //回复
             p0 = p0.substring(p0.indexOf("<div>") + "<div>".length());
             p0 = p0.substring(0, p0.indexOf("</div>"))
-                    .replace("\"highlight\"","\"\"");
+                    .replace("\"highlight\"", "\"\"");
             JSONArray replies = new JSONArray();
             while (p0.contains("<span class=\"\">")) {
                 p0 = p0.substring(p0.indexOf("<span class=\"\">") + "<span class=\"\">".length());
@@ -218,20 +219,22 @@ public class SNHeyHelper {
                     continue;
 
                 String loc = p.substring(p.indexOf("<A HREF=\"") + "<A HREF=\"".length(), p.indexOf("\">here"));
-                //暂时对处理短链感到无能为力
-                /*
-                if (loc.substring(6).indexOf(":") != -1) {
-                    //图片短链
-                    String p1 = weibo.setCookie(HttpRequest.get(p.substring(p.indexOf("<A HREF=\"") + "<A HREF=\"".length(), p.indexOf("\">here")))
-                            .header("Host","photo.weibo.com")).execute().body();
-                    p1 = p1.substring(p1.indexOf("src=\"")+"src=\"".length());
-                    pic = p1.substring(0,p1.indexOf("\">"));
 
-                } else {
-                    //其他短链*/
+                if (loc.substring(6).indexOf(":") != -1) {
+                    String src = Archaeologist.weibo.getPicSrc(loc);
+                    if (src != null) {
+                        out = out.plus(contact.uploadImage(ExternalResource.create(getRes(src))))
+                                .plus(a[count]);
+                        continue;
+                    }
+
+                }
+                 /*else {
+                    //其他短链
+                    }*/
+
                 out = out.plus(loc + a[count]);
                 continue;
-                //}
             }
 
             out = out.plus(contact.uploadImage(ExternalResource.create(getRes(pic))));

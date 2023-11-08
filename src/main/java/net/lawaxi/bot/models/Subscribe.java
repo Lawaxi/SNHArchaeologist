@@ -9,4 +9,12 @@ public class Subscribe {
         this.name = name;
         this.year = year;
     }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof Subscribe) {
+            return ((Subscribe) obj).name.equals(name) && ((Subscribe) obj).year == year;
+        }
+        return false;
+    }
 }

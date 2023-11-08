@@ -1,72 +1,159 @@
 package net.lawaxi.bot.helper;
 
 import cn.hutool.core.io.FileUtil;
-import cn.hutool.setting.Setting;
+import cn.hutool.json.JSONArray;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
+import net.lawaxi.bot.Archaeologist;
 import net.lawaxi.bot.models.Subscribe;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class ConfigHelper {
 
     public final File sourceFolder;
-    public final Setting setting;
-    private final List<Subscribe> subscribes;
-    private final long group;
-    private final boolean debug;
+    public final File configFile;
+    private final HashMap<Long, List<Subscribe>> subscribes = new HashMap<>();
 
     public ConfigHelper(File sourceFolder, File file) {
         this.sourceFolder = sourceFolder;
+        this.configFile = file;
+
         if (!file.exists()) {
-            FileUtil.touch(file);
-            Setting s = new Setting(file, StandardCharsets.UTF_8, false);
-            s.set("group", "817151561");
-            s.set("debug", "false");
-            s.store();
+            FileUtil.writeString("{\"817151561\":[{\"name\":\"SNH48-林忆宁\",\"year\":7}]}", file, StandardCharsets.UTF_8);
         }
 
-        this.setting = new Setting(file, StandardCharsets.UTF_8, false);
-        this.subscribes = new ArrayList<>();
-        for (String key : this.setting.keySet("subscribes")) {
-            this.subscribes.add(new Subscribe(key, this.setting.getInt(key, "subscribes", 0)));
-        }
-        this.group = this.setting.getLong("group", 817151561L);
-        this.debug = this.setting.getBool("debug", false);
-    }
-
-    public List<Subscribe> getSubscribes() {
-        return this.subscribes;
-    }
-
-    public void addSubscribe(Subscribe subscribe) {
-        this.subscribes.add(subscribe);
-        this.setting.setByGroup(subscribe.name, "subscribes", "" + subscribe.year);
-        this.setting.store();
-    }
-
-    public boolean rmSubscribe(String name) {
-        Subscribe s = getSubscribe(name);
-        if (s == null)
-            return false;
-
-        else {
-            this.subscribes.remove(s);
-            this.setting.remove(name, "subscribes");
-            this.setting.store();
-            return true;
+        JSONObject c = JSONUtil.readJSONObject(file, StandardCharsets.UTF_8);
+        for (String g : c.keySet()) {
+            try {
+                JSONArray jsonArray = c.getJSONArray(g);
+                subscribes.put(Long.valueOf(g), constructSubscribes(jsonArray));
+            } catch (Exception e) {
+                Archaeologist.INSTANCE.getLogger().warning("一个群的关注信息读取错误");
+            }
         }
     }
 
-    public Subscribe getSubscribe(String name) {
-        for (Subscribe subscribe : this.subscribes) {
+    private List<Subscribe> constructSubscribes(JSONArray jsonArray) {
+        List<Subscribe> subscribeList = new ArrayList<>();
+        for (Object item : jsonArray) {
+            JSONObject jsonObject = (JSONObject) item;
+            String name = jsonObject.getStr("name");
+            int year = jsonObject.getInt("year");
+            subscribeList.add(new Subscribe(name, year));
+        }
+        return subscribeList;
+    }
+
+    public List<Subscribe> getSubscribes(long group) {
+        return subscribes.getOrDefault(group, new ArrayList<>());
+    }
+
+    public void addSubscribe(long group, Subscribe subscribe) {
+        List<Subscribe> groupSubscribes = subscribes.getOrDefault(group, new ArrayList<>());
+        groupSubscribes.add(subscribe);
+        subscribes.put(group, groupSubscribes);
+
+        // Update the JSON configuration file
+        updateConfigFile();
+    }
+
+    public boolean rmSubscribe(long group, String name) {
+        List<Subscribe> groupSubscribes = subscribes.get(group);
+
+        if (groupSubscribes == null) {
+            return false; // Group not found
+        }
+
+        boolean removed = false;
+        for (Subscribe subscribe : groupSubscribes) {
+            if (subscribe.name.equals(name)) {
+                groupSubscribes.remove(subscribe);
+                removed = true;
+            }
+        }
+
+        if (removed) {
+            updateConfigFile();
+        }
+
+        return removed;
+    }
+
+    public boolean rmSubscribe(long group, String name, int year) {
+        List<Subscribe> groupSubscribes = subscribes.get(group);
+
+        if (groupSubscribes == null) {
+            return false; // Group not found
+        }
+
+        for (Subscribe subscribe : groupSubscribes) {
+            if (subscribe.equals(new Subscribe(name, year))) {
+                groupSubscribes.remove(subscribe);
+                updateConfigFile();
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public Subscribe getFirstSubscribe(long group, String name) {
+        List<Subscribe> groupSubscribes = subscribes.get(group);
+
+        if (groupSubscribes == null) {
+            return null; // Group not found
+        }
+
+        for (Subscribe subscribe : groupSubscribes) {
             if (subscribe.name.equals(name)) {
                 return subscribe;
             }
         }
-        return null;
 
+        return null; // Subscribe not found
+    }
+
+    public Subscribe getSubscribe(long group, String name, int year) {
+        List<Subscribe> groupSubscribes = subscribes.get(group);
+
+        if (groupSubscribes == null) {
+            return null; // Group not found
+        }
+
+        for (Subscribe subscribe : groupSubscribes) {
+            if (subscribe.equals(new Subscribe(name, year))) {
+                return subscribe;
+            }
+        }
+
+        return null; // Subscribe not found
+    }
+
+    public List<Long> getGroups() {
+        return new ArrayList<>(subscribes.keySet());
+    }
+
+    private void updateConfigFile() {
+        JSONObject updatedConfig = new JSONObject();
+
+        for (Long group : subscribes.keySet()) {
+            JSONArray groupSubscriptions = new JSONArray();
+            List<Subscribe> groupSubscribes = subscribes.get(group);
+            for (Subscribe subscribe : groupSubscribes) {
+                JSONObject subscriptionObject = new JSONObject();
+                subscriptionObject.put("name", subscribe.name);
+                subscriptionObject.put("year", subscribe.year);
+                groupSubscriptions.add(subscriptionObject);
+            }
+            updatedConfig.put(group.toString(), groupSubscriptions);
+        }
+
+        FileUtil.writeString(updatedConfig.toStringPretty(), configFile, StandardCharsets.UTF_8);
     }
 
     public void storeSource(String name, String time, String content) {
@@ -87,13 +174,5 @@ public class ConfigHelper {
         if (file.exists()) {
             return FileUtil.readString(file, StandardCharsets.UTF_8);
         } else return "";
-    }
-
-    public long group() {
-        return this.group;
-    }
-
-    public boolean debug() {
-        return this.debug;
     }
 }

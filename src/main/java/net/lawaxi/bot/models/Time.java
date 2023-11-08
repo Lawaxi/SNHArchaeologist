@@ -13,6 +13,24 @@ public class Time {
         this.date = date;
     }
 
+    public static Time fromStart() {
+        return new Time(2014, 7, 11);
+    }
+
+    public static Time current(DateTime now) {
+        int date = now.getDate();
+        if (date < 11)
+            return new Time(now.year(), now.month() + 1, 1);
+        else if (date < 21)
+            return new Time(now.year(), now.month() + 1, 11);
+        else
+            return new Time(now.year(), now.month() + 1, 21);
+    }
+
+    public static Time current(long now) {
+        return current(DateTime.of(now));
+    }
+
     @Override
     public String toString() {
         return year + "-" + (month > 9 ? "" : "0") + month + "-" + (date > 9 ? "" : "0") + date;
@@ -34,23 +52,5 @@ public class Time {
                 return new Time(year, month + 1, 1);
             }
         }
-    }
-
-    public static Time fromStart() {
-        return new Time(2014, 7, 11);
-    }
-
-    public static Time current(DateTime now) {
-        int date = now.getDate();
-        if (date < 11)
-            return new Time(now.year(), now.month() + 1, 1);
-        else if (date < 21)
-            return new Time(now.year(), now.month() + 1, 11);
-        else
-            return new Time(now.year(), now.month() + 1, 21);
-    }
-
-    public static Time current(long now) {
-        return current(DateTime.of(now));
     }
 }

@@ -18,6 +18,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static net.lawaxi.bot.Archaeologist.*;
 
@@ -28,20 +29,20 @@ public class debug_command extends JCompositeCommand {
     }
 
     @SubCommand({"sub"})
-    public void sub(CommandSender sender, String name, int year) {
+    public void sub(CommandSender sender, long group, String name, int year) {
         Subscribe sub = new Subscribe(name, DateTime.now().year() - year);
         executeDebugLog(sub.name + "-" + sub.year);
         if (net.lawaxi.bot.listener.download(sub)) {
             sender.sendMessage("关注成功");
-            config.addSubscribe(sub);
+            config.addSubscribe(group, sub);
         } else {
             sender.sendMessage("关注失败");
         }
     }
 
     @SubCommand({"send"})
-    public void send(CommandSender sender, String name, int index) {
-        Subscribe sub = config.getSubscribe(name);
+    public void send(CommandSender sender, Long group, String name, int index) {
+        Subscribe sub = config.getFirstSubscribe(group, name);
         if (sub == null) {
             sender.sendMessage("未关注");
             return;
@@ -73,7 +74,10 @@ public class debug_command extends JCompositeCommand {
             JSONObject s = JSONUtil.parseObj(source);
 
             if (s.keySet().size() >= index) {
-                List<String> keys = s.keySet().stream().sorted((a, b) -> Long.valueOf(b) - Long.valueOf(a) > 0 ? 1 : -1).toList();
+                List<String> keys = s.keySet()
+                        .stream()
+                        .sorted((a, b) -> Long.compare(Long.valueOf(b), Long.valueOf(a)))
+                        .collect(Collectors.toList());
 
                 try {
                     sender.sendMessage(snhey.getMessage(s.getJSONObject(keys.get(index - 1)), (Contact) sender));
