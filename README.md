@@ -8,12 +8,28 @@ Mirai-Console插件，构建mirai（[mamoe/mirai](https://github.com/mamoe/mirai
 
 ### 配置
 
-配置中需要填写使用机器人的群号
-
 ~~~
-[]
-group = 817151561
-debug = false
+{
+    "114514": [
+        {
+            "name": "SNH48-陈琳",
+            "year": 8,
+            "original": true
+        },
+        {
+            "name": "SNH48-谢天依",
+            "year": 8,
+            "original": true
+        }
+    ],
+    "1919810": [
+        {
+            "name": "SNH48-林忆宁",
+            "year": 7,
+            "original": false
+        }
+    ]
+}
 ~~~
 
 ### 指令
