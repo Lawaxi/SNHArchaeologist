@@ -18,6 +18,8 @@ import net.mamoe.mirai.contact.Group;
 import net.mamoe.mirai.event.GlobalEventChannel;
 import net.mamoe.mirai.message.data.PlainText;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 
@@ -28,7 +30,7 @@ public final class Archaeologist extends JavaPlugin {
     public static WeiboLoginHelper2 weibo;
 
     private Archaeologist() {
-        super(new JvmPluginDescriptionBuilder("net.lawaxi.snharch", "0.1.3-test3")
+        super(new JvmPluginDescriptionBuilder("net.lawaxi.snharch", "0.1.3-test4")
                 .name("Archaeologist")
                 .author("delay0delay")
                 .dependsOn("net.lawaxi.shitboy", true)
@@ -68,23 +70,37 @@ public final class Archaeologist extends JavaPlugin {
                                     break;
                                 }
 
+                                List<JSONObject> ms = new ArrayList<>();
                                 for (Subscribe sub : config.getSubscribes(g)) {
                                     DateTime start = DateTime.now();
                                     start.setYear(start.getYear() - sub.year);
                                     start.setMinutes(0);
                                     start.setSeconds(0);
 
-                                    List<JSONObject> l = snhey.getCurrent(sub.name, sub.original, start);
-                                    for (int i = l.size() - 1; i >= 0; i--) {
-                                        try {
-                                            group.sendMessage(new PlainText("【" + sub.year + "年前：" + l.get(i).getStr("name") + "微博更新：" + TimeUtil.time2String(l.get(i).getLong("time")) + "】\n")
-                                                    .plus(snhey.getMessage(l.get(i), group)));
-                                        } catch (Exception e) {
-                                            e.printStackTrace();
+                                    List<JSONObject> ms1 = snhey.getCurrent(sub.name, sub.original, start);
+                                    for (JSONObject m1 : ms1) {
+                                        for (JSONObject m : ms) {
+                                            if (m.getLong("time") == m1.getLong("time") &&
+                                                    m.getStr("name").equals(m1.getStr("name"))) {
+                                                ms1.remove(m1); //避免重复
+                                                break;
+                                            }
                                         }
+                                        m1.set("sub_year", sub.year);
                                     }
+
+                                    ms.addAll(ms1);
                                 }
 
+                                ms.sort(Comparator.comparingLong(m -> m.getLong("time")));
+                                for (JSONObject m : ms) {
+                                    try {
+                                        group.sendMessage(new PlainText("【" + m.getInt("sub_year") + "年前：" + m.getStr("name") + "微博更新：" + TimeUtil.time2String(m.getLong("time")) + "】\n")
+                                                .plus(snhey.getMessage(m, group)));
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                }
                             }
                         }
                     }.start();
